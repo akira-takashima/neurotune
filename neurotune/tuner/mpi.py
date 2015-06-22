@@ -138,7 +138,7 @@ class MPITuner(Tuner):
                                           tag=self.DATA_MSG)
                 try:
                     processID, jobID, result = received
-                # If the slave raised an evaluation exception it sends 6-tuple
+                # If the slave raised an evaluation exception it sends 8-tuple
                 except ValueError:
                     self.free_processes.append(received[0])
                     raise EvaluationException(*received[1:])
@@ -173,7 +173,8 @@ class MPITuner(Tuner):
                 # This will tell the master node to raise an
                 # EvaluationException and release all slaves
                 self.comm.send((self.rank, e.objective, e.simulation,
-                                e.candidate, e.analysis, e.traceback),
+                                e.candidate, e.analysis, e.error_type,
+                                e.error_message, e.traceback),
                                dest=self.MASTER, tag=self.DATA_MSG)
             if not e:
                 self.comm.send((self.rank, jobID, evaluation),

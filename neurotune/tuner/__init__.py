@@ -15,11 +15,14 @@ class EvaluationException(Exception):
     exception to be examined
     """
 
-    def __init__(self, objective, simulation, candidate, analysis, tback=None):
+    def __init__(self, objective, simulation, candidate, analysis,
+                 erorr_type, error_message, tback=None):
         self.objective = objective
         self.simulation = simulation
         self.candidate = candidate
         self.analysis = analysis
+        self.error_type = error_type
+        self.error_message = error_message
         self.traceback = tback if tback is not None else traceback.format_exc()
 
     def __str__(self):
@@ -29,7 +32,7 @@ class EvaluationException(Exception):
     def save(self, filename):
         with open(filename, 'w') as f:
             pkl.dump((self.objective, self.simulation, self.candidate,
-                      self.analysis), f)
+                      self.analysis, self.error_type, self.error_message), f)
         print ("Saving failed candidate along with objective, simulation "
                "and analysis objects to file at '{}'".format(filename))
 
@@ -206,18 +209,17 @@ class Tuner(object):
                    "simulation for these parameters".format(candidate))
             fitness = self.algorithm.BAD_FITNESS_VALUE
             self.bad_candidates.append(candidate)
-        except:
+        except Exception as e:
             # Check to see if using distributed processing, in which case
             # raise an EvaluationException (allows the MPI tuner to fail
             # gracefully). Otherwise the assumption is that you are debugging
-            # and would prefer to raise the exception normally to debug in an
-            # IDE.
+            # and would prefer to raise the exception normally
             if self.num_processes == 1 and __debug__:
                 raise
             else:
-                raise EvaluationException(self.objective, self.simulation,
-                                          candidate,
-                                          locals().get('analysis', None))
+                raise EvaluationException(
+                    self.objective, self.simulation, candidate, type(e),
+                    e.message, locals().get('analysis', None))
         return fitness
 
     @classmethod
