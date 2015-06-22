@@ -218,8 +218,8 @@ class Tuner(object):
                 raise
             else:
                 raise EvaluationException(
-                    self.objective, self.simulation, candidate, type(e),
-                    e.message, locals().get('analysis', None))
+                    self.objective, self.simulation, candidate,
+                    locals().get('analysis', None), type(e), e.message)
         return fitness
 
     @classmethod
